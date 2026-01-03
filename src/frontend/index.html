@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="bg">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Система за управление на изисквания</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <link rel="stylesheet" href="./css/components.css">
+  <link rel="stylesheet" href="./css/responsive.css">
+</head>
+
+<div id="project-modal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span class="close" onclick="closeProjectModal()">&times;</span>
+    <h2>Нов проект</h2>
+    <form id="create-project-form">
+      <div class="form-group">
+        <label for="project-name">Име на проект</label>
+        <input type="text" id="project-name" required>
+      </div>
+      <div class="form-group">
+        <label for="project-description">Описание</label>
+        <textarea id="project-description"></textarea>
+      </div>
+      <button type="submit" class="btn">Създай проект</button>
+    </form>
+  </div>
+</div>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="auth-buttons" id="login-register-btns">
+        <button class="btn btn-secondary" onclick="openLogin()">Вход</button>
+        <button class="btn btn-secondary" onclick="openRegister()">Регистрация</button>
+      </div>
+      <div class="auth-buttons">
+        <h4 id="logged-user"></h4>
+        <button class="btn btn-secondary" id="logout-btn" style="display:none;" onclick="logout()">Изход</button>
+      </div>
+      <h1>Система за управление на изисквания</h1>
+      <p>Управление на функционални и нефункционални изисквания за проекти</p>
+      <div id="current-project-name" style="margin-top:10px; font-weight:bold;"></div>
+    </div>
+
+    <div id="login-register-center-container">
+    <div id="centered-login-register-btns" class="auth-buttons">
+        <button class="btn btn-secondary" onclick="openLogin()">Вход</button>
+        <button class="btn btn-secondary" onclick="openRegister()">Регистрация</button>
+    </div>
+    </div>
+
+    
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal" style="display:none;">
+      <div class="modal-content">
+        <span class="close" onclick="closeLoginModal()">&times;</span>
+        <h2>Вход</h2>
+        <form id="login-form">
+          <div class="form-group">
+            <label for="login-username">Потребителско име</label>
+            <input type="text" id="login-username" required>
+          </div>
+          <div class="form-group">
+            <label for="login-password">Парола</label>
+            <input type="password" id="login-password" required>
+          </div>
+          <button type="submit" class="btn">Вход</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="register-modal" class="modal" style="display:none;">
+      <div class="modal-content">
+        <span class="close" onclick="closeRegisterModal()">&times;</span>
+        <h2>Регистрация</h2>
+        <form id="register-form">
+          <div class="form-group">
+            <label for="register-username">Потребителско име</label>
+            <input type="text" id="register-username" required>
+          </div>
+          <div class="form-group">
+            <label for="register-email">Имейл</label>
+            <input type="email" id="register-email" required>
+          </div>
+          <div class="form-group">
+            <label for="register-password">Парола</label>
+            <input type="password" id="register-password" required>
+          </div>
+          <button type="submit" class="btn">Регистрация</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="project-selection" id="project-selection">
+      <label for="project-selector"><strong>Избери проект:</strong></label>
+      <select id="project-selector">
+        <option value="">-- Избери проект --</option>
+      </select>
+      <button class="btn btn-secondary" onclick="openCreateProjectModal()">+ Нов проект</button>
+      <span id="project-loading" class="project-loading" style="display:none;">Зареждане...</span>
+      <span id="current-project-name"></span>
+    </div>
+    <div id="special-user-actions" style="display: none;">
+      <button class="btn btn-secondary special-add-all" id="special-add-all-btn" style="margin-left: 10px;">Добави изискване за всички проекти</button>
+    </div>
+
+    <div id="main-interface" style="display:none;">
+      <div class="nav-tabs">
+        <button class="nav-tab active" onclick="showTab('dashboard')">Табло</button>
+        <button class="nav-tab" onclick="showTab('add-requirement')">Добави изискване</button>
+        <button class="nav-tab" onclick="showTab('manage-requirements')">Управление</button>
+        <button class="nav-tab" onclick="showTab('add-diagram')">Добави диаграма</button>
+        <button class="nav-tab" onclick="showTab('import-export')">Импорт/Експорт</button>
+      </div>
+      <!-- целия таб съдържание тук -->
+
+
+
+      <!-- Dashboard Tab -->
+      <div id="dashboard" class="tab-content active">
+        <section id="project-members">
+          <h3>Собственик на проекта</h3>
+          <div id="project-owner" class="project-owner">
+            <table class="owner-table">
+              <tbody>
+                <tr>
+                  <th>Username</th>
+                  <td id="owner-name">Не е зададено</td>
+                </tr>
+                <tr>
+                  <th>Email</th>
+                  <td id="owner-email">Не е зададено</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <button id="add-member-btn" onclick="showAddMemberModal()" style="display:none;">+ Add Member</button>
+          <h3>Project Members</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+            <tbody id="members-list">
+              <!-- Members will be loaded here -->
+            </tbody>
+          </table>
+        </section>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-number" id="total-requirements">0</div>
+            <div class="stat-label">Общо изисквания</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="functional-count">0</div>
+            <div class="stat-label">Функционални</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="non-functional-count">0</div>
+            <div class="stat-label">Нефункционални</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="high-priority-count">0</div>
+            <div class="stat-label">Висок приоритет</div>
+          </div>
+        </div>
+
+        <h3>Последни диаграми</h3>
+          <div id="recent-diagrams" class="requirements-grid"></div>
+
+        <h3>Последни изисквания</h3>
+        <div id="recent-requirements" class="requirements-grid"></div>
+      </div>
+
+      <!-- Diagram Modal -->
+      <div id="diagram-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+          <span class="close" onclick="closeDiagramModal()">×</span>
+          <h2>Диаграма</h2>
+          <div id="diagram-container">
+            <img id="diagram-image" src="" alt="PlantUML Diagram" style="max-width:100%;">
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Add Requirement Tab -->
+      <div id="add-requirement" class="tab-content">
+        <h2>Добави ново изискване</h2>
+        <form id="requirement-form">
+          <div class="form-group">
+            <label for="req-title">Заглавие на изискване *</label>
+            <input type="text" id="req-title" required>
+          </div>
+
+          <div class="form-group">
+            <label for="req-description">Описание *</label>
+            <textarea id="req-description" required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="req-type">Тип изискване *</label>
+            <select id="req-type" required onchange="toggleIndicators()">
+              <option value="">Избери тип</option>
+              <option value="functional">Функционално</option>
+              <option value="non-functional">Нефункционално</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="req-priority">Приоритет</label>
+            <select id="req-priority">
+              <option value="low">Нисък</option>
+              <option value="medium" selected>Среден</option>
+              <option value="high">Висок</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="req-complexity">Сложност (1-5)</label>
+            <select id="req-complexity">
+              <option value="1">1 - Много лесно</option>
+              <option value="2">2 - Лесно</option>
+              <option value="3" selected>3 - Средно</option>
+              <option value="4">4 - Трудно</option>
+              <option value="5">5 - Много трудно</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="req-component">Компонент</label>
+            <input type="text" id="req-component" placeholder="Например: Frontend, Backend, Database">
+          </div>
+
+          <div class="form-group">
+            <label for="req-assignee">Отговорен</label>
+            <input type="text" id="req-assignee" placeholder="Име на човек или екип">
+          </div>
+
+          <div class="form-group">
+            <label for="req-tags">Хеш-тагове (разделени със запетая)</label>
+            <input type="text" id="req-tags" placeholder="#security, #performance, #ui">
+          </div>
+
+          <div id="indicators-section" style="display: none;">
+            <h3>Индикатори за измерване</h3>
+            <div id="indicators-container"></div>
+            <button type="button" class="btn btn-secondary" onclick="addIndicator()">Добави индикатор</button>
+          </div>
+
+          <button type="submit" class="btn">Добави изискване</button>
+        </form>
+      </div>
+
+      <!-- Manage Requirements Tab -->
+      <div id="manage-requirements" class="tab-content">
+        <div class="filter-section">
+          <h3>Филтри и търсене</h3>
+          <div class="filter-row">
+            <div class="form-group">
+              <label for="search-text">Търсене в текст</label>
+              <input type="text" id="search-text" placeholder="Търси в заглавие и описание">
+            </div>
+            <div class="form-group">
+              <label for="filter-type">Тип</label>
+              <select id="filter-type">
+                <option value="">Всички типове</option>
+                <option value="functional">Функционални</option>
+                <option value="non-functional">Нефункционални</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="filter-tag">Таг</label>
+              <input type="text" id="filter-tag" placeholder="Например: #ui, #frontend">
+            </div>
+            <div class="form-group">
+              <label for="filter-priority">Приоритет</label>
+              <select id="filter-priority">
+                <option value="">Всички приоритети</option>
+                <option value="high">Висок</option>
+                <option value="medium">Среден</option>
+                <option value="low">Нисък</option>
+              </select>
+            </div>
+          </div>
+          <div id="quick-filters">
+
+          </div>
+          <button class="btn" onclick="applyFilters()">Приложи филтри</button>
+          <button class="btn btn-secondary" onclick="clearFilters()">Изчисти филтри</button>
+        </div>
+
+        <div id="filtered-requirements" class="requirements-grid"></div>
+      </div>
+
+      <div id="add-diagram" class="tab-content" style="display:none;">
+        <h2>Добави диаграма</h2>
+        <form id="diagram-form">
+          <div class="form-group">
+            <label for="diagram-name-input">Име на диаграма *</label>
+            <input type="text" id="diagram-name-input" required placeholder="Например: Project1-UMLString">
+          </div>
+          <div class="form-group">
+            <label for="diagram-text">PlantUML текст *</label>
+            <textarea id="diagram-text" required placeholder="Въведете PlantUML текст"></textarea>
+          </div>
+          <div class="form-group">
+            <button type="button" class="btn btn-secondary" onclick="saveDiagram()">Запази диаграма</button>
+          </div>
+        </form>
+        </form>
+      </div>
+
+      <!-- Reports Tab -->
+      <div id="reports" class="tab-content">
+        <h2>Отчети и анализи</h2>
+        <div class="export-section">
+          <h3>Генериране на отчети</h3>
+          <div class="filter-row">
+            <div class="form-group">
+              <label for="report-type">Тип отчет</label>
+              <select id="report-type">
+                <option value="summary">Общ преглед</option>
+                <option value="detailed">Детайлен отчет</option>
+                <option value="by-component">По компоненти</option>
+                <option value="by-priority">По приоритет</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn" onclick="generateReport()">Генерирай отчет</button>
+        </div>
+        <div id="report-content"></div>
+      </div>
+
+      <!-- Import/Export Tab -->
+      <div id="import-export" class="tab-content">
+        <h2>Импорт и експорт на данни</h2>
+
+        <div class="export-section">
+          <h3>Експорт</h3>
+          <p>Експортирай проект в различни формати</p>
+          <button class="btn" onclick="exportToJSON()">Експорт като JSON</button>
+          <button class="btn" onclick="exportToMarkdown()">Експорт като Markdown (.md)</button>
+        </div>
+
+        <div class="export-section">
+          <h3>Импорт</h3>
+          <div class="form-group">
+            <label for="import-file">Избери файл за импорт</label>
+            <input type="file" id="import-file" accept=".json,.csv,.xml">
+          </div>
+          <button class="btn" onclick="importProjectFromJson()">Импортирай файл</button>
+          <input type="file" id="importFileInput" style="display:none" accept=".json">
+        </div>
+      </div>
+    </div>
+
+      <!-- Modal for displaying indicators -->
+      <div id="indicators-modal" class="modal">
+        <div class="modal-content">
+          <span class="close" onclick="closeIndicatorsModal()">&times;</span>
+          <h2>Индикатори</h2>
+          <div id="indicators-list">
+            <div id="indicators-loading">Зареждане на индикатори...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal for editing requirements -->
+      <div id="edit-modal" class="modal">
+        <div class="modal-content">
+          <span class="close" onclick="closeModal()">&times;</span>
+          <h2>Редактирай изискване</h2>
+        <form id="edit-form">
+          <input type="hidden" id="edit-id">
+          <div class="form-group">
+            <label for="edit-title">Заглавие</label>
+            <input type="text" id="edit-title" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-description">Описание</label>
+            <textarea id="edit-description" required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="edit-priority">Приоритет</label>
+            <select id="edit-priority">
+              <option value="low">Нисък</option>
+              <option value="medium">Среден</option>
+              <option value="high">Висок</option>
+            </select>
+          </div>
+          <button type="submit" class="btn">Запази промените</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="add-member-modal" class="modal" style="display:none;">
+      <div class="modal-content">
+        <span class="close" onclick="closeAddMemberModal()">&times;</span>
+        <h2>Добави член към проекта</h2>
+        <form id="add-member-form" onsubmit="submitAddMember(event)">
+          <label for="member-identifier">Потребителско име или имейл:</label>
+          <input type="text" id="member-identifier" name="member-identifier" required>
+          <button type="submit" class="btn">Добави</button>
+        </form>
+        <div id="add-member-error" class="error-message" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading indicator -->
+  <div id="loading" class="loading" style="display: none;">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <!-- Toast notifications -->
+  <div id="toast" class="toast"></div>
+
+  <script src="js/utils.js"></script>
+  <script src="js/users.js"></script>
+  <script src="js/requirements.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/filters.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/rawdeflate.js"></script>
+</body>
+
+</html>
