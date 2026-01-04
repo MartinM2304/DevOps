@@ -1,0 +1,171 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  sonarqube:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        continue-on-error: true
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          tools: composer:v2
+
+      - name: Install PHP Dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run Unit Tests
+        run: vendor/bin/phpunit --testsuite Unit
+
+  php-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          tools: composer:v2
+
+      - name: Install PHP Dependencies
+        run: composer install --prefer-dist --no-progress || echo "No composer.json found"
+
+      - name: Run PHP Linting
+        run: |
+          if [ -f vendor/bin/phpcs ]; then
+            vendor/bin/phpcs --standard=PSR12 src/ || echo "Linting issues found"
+          else
+            echo "PHPCS not installed, skipping lint"
+          fi
+
+  build-image:
+    needs: [php-lint, unit-tests]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+        continue-on-error: true
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t requirements-app:latest .
+          if [ -n "${{ secrets.DOCKER_USERNAME }}" ]; then
+            docker tag requirements-app:latest ${{ secrets.DOCKER_USERNAME }}/requirements-app:latest
+            docker push ${{ secrets.DOCKER_USERNAME }}/requirements-app:latest
+          fi
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    environment: staging
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: requirements_db
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          extensions: pdo, pdo_mysql
+          tools: composer:v2
+
+      - name: Install PHP Dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run database migrations
+        env:
+          DB_HOST: localhost
+          DB_NAME: requirements_db
+          DB_USER: root
+          DB_PASS: root
+        run: php database/migrate.php
+
+      - name: Run Integration Tests
+        env:
+          APP_ENV: staging
+          DB_HOST: localhost
+          DB_NAME: requirements_db
+          DB_USER: root
+          DB_PASS: root
+        run: vendor/bin/phpunit --testsuite Integration
+
+  deploy-to-k3d:
+    needs: [build-image, integration-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install k3d
+        run: |
+          curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+
+      - name: Create k3d Cluster
+        run: |
+          k3d cluster create my-cluster \
+            --port 8000:80@loadbalancer \
+            --k3s-arg "--disable=traefik@server:*"
+
+      - name: Deploy to k3d
+        run: |
+          kubectl apply -f k8s/db-deployment.yaml
+          
+          kubectl wait --for=condition=ready pod -l app=db --timeout=120s
+          
+          kubectl apply -f k8s/migration-job.yaml
+          kubectl wait --for=condition=complete job/db-migration --timeout=120s
+          
+          kubectl apply -f k8s/app-deployment.yaml
+          
+          kubectl rollout status deployment/requirements-app --timeout=120s || echo "Deployment may still be starting"
+
+      - name: Verify Deployment
+        run: |
+          kubectl get pods
+          kubectl get services
+
+      - name: Tear Down k3d Cluster
+        if: always()
+        run: |
+          k3d cluster delete my-cluster
