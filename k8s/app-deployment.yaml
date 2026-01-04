@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: requirements-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: requirements-app
+  template:
+    metadata:
+      labels:
+        app: requirements-app
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox
+        command: ['sh', '-c', 'until nc -z db 3306; do sleep 2; done']
+      containers:
+      - name: requirements-app
+        image: requirements-app:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: DB_HOST
+          value: "db"
+        - name: DB_NAME
+          value: "requirements_db"
+        - name: DB_USER
+          value: "root"
+        - name: DB_PASS
+          value: "root"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: requirements-app
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+  selector:
+    app: requirements-app
