@@ -11,4 +11,22 @@
             <directory>tests/integration</directory>
         </testsuite>
     </testsuites>
+
+    <logging>
+        <junit outputFile="tests/results.xml"/>
+    </logging>
+
+    <source>
+        <include>
+            <directory>src</directory>
+        </include>
+    </source>
+
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="DB_HOST" value="localhost" force="true"/>
+        <env name="DB_NAME" value="test_db" force="true"/>
+        <env name="DB_USER" value="root" force="true"/>
+        <env name="DB_PASS" value="" force="true"/>
+    </php>
 </phpunit>
