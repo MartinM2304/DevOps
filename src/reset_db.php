@@ -7,7 +7,7 @@ $dbname = getenv('DB_NAME');
 
 if (!$host) {
     $envPath = __DIR__ . '/backend/.env.php';
-    
+
     if (file_exists($envPath)) {
         $env = require $envPath;
         $host = $env['DB_HOST'];
