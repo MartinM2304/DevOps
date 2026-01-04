@@ -9,13 +9,13 @@ try {
     
     echo json_encode([
         'status' => 'ok',
-        'message' => 'Връзката към базата е успешна.',
+        'message' => 'db connected',
         'test_value' => $row['test']
     ]);
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode([
         'status' => 'error',
-        'message' => 'Неуспешна заявка към базата: ' . $e->getMessage()
+        'message' => 'not connected to db ' . $e->getMessage()
     ]);
 }
