@@ -78,7 +78,7 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t requirements-app:latest .
+          docker build -f docker/Dockerfile -t requirements-app:latest .
           if [ -n "${{ secrets.DOCKER_USERNAME }}" ]; then
             docker tag requirements-app:latest ${{ secrets.DOCKER_USERNAME }}/requirements-app:latest
             docker push ${{ secrets.DOCKER_USERNAME }}/requirements-app:latest
