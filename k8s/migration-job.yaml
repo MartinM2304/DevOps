@@ -8,6 +8,7 @@ spec:
       containers:
       - name: migrate
         image: requirements-app:latest
+        imagePullPolicy: IfNotPresent
         command: ["php", "database/migrate.php"]
         env:
         - name: DB_HOST
