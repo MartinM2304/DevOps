@@ -14,8 +14,24 @@ spec:
     spec:
       initContainers:
       - name: wait-for-db
-        image: busybox
-        command: ['sh', '-c', 'until nc -z db 3306; do sleep 2; done']
+        image: busybox:1.35
+        imagePullPolicy: Never
+        command: ['sh', '-c', 'until nc -z db 3306; do echo "Waiting for DB..."; sleep 3; done']
+
+      - name: run-migration
+        image: requirements-app:latest
+        imagePullPolicy: Never
+        command: ["php", "database/migrate.php"]
+        env:
+        - name: DB_HOST
+          value: "db"
+        - name: DB_NAME
+          value: "requirements_db"
+        - name: DB_USER
+          value: "root"
+        - name: DB_PASS
+          value: "root"
+
       containers:
       - name: requirements-app
         image: requirements-app:latest
@@ -40,5 +56,6 @@ spec:
   type: LoadBalancer
   ports:
   - port: 80
+    targetPort: 80
   selector:
     app: requirements-app

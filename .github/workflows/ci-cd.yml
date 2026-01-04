@@ -153,12 +153,13 @@ jobs:
           
           kubectl wait --for=condition=ready pod -l app=db --timeout=120s
           
-          kubectl apply -f k8s/migration-job.yaml
-          kubectl wait --for=condition=complete job/db-migration --timeout=120s
-          
           kubectl apply -f k8s/app-deployment.yaml
           
-          kubectl rollout status deployment/requirements-app --timeout=120s || echo "Deployment may still be starting"
+          if ! kubectl rollout status deployment/requirements-app --timeout=120s; then
+            echo "Deployment FAILED. Showing logs:"
+            kubectl logs -l app=requirements-app --all-containers=true --tail=100
+            exit 1
+          fi
 
       - name: Verify Deployment
         run: |
