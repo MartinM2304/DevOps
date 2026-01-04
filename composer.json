@@ -1,0 +1,16 @@
+{
+    "name": "requirements/management-system",
+    "description": "Requirements Management System",
+    "type": "project",
+    "require": {
+        "php": ">=8.1",
+        "ext-pdo": "*",
+        "ext-pdo_mysql": "*"
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3.7"
+    },
+    "scripts": {
+        "lint": "phpcs --standard=PSR12 src/"
+    }
+}
