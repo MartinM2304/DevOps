@@ -10,15 +10,16 @@ class DatabaseTest extends TestCase
 
     protected function setUp(): void
     {
+        $dbHost = getenv('DB_HOST');
+        $dbName = getenv('DB_NAME');
+        $dbUser = getenv('DB_USER');
+        $dbPass = getenv('DB_PASS') ?: 'root'; 
+
         try {
-            $config = require __DIR__ . '/../../src/backend/.env.php';
-            $this->pdo = new PDO(
-                "mysql:host={$config['DB_HOST']};dbname={$config['DB_NAME']}",
-                $config['DB_USER'],
-                $config['DB_PASS']
-            );
+            $this->pdo = new PDO("mysql:host={$dbHost};dbname={$dbName}", $dbUser, $dbPass);
+            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
-            $this->markTestSkipped('Database connection not available');
+            $this->markTestSkipped('Check your CI/CD MySQL service: ' . $e->getMessage());
         }
     }
 
