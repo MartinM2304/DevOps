@@ -19,4 +19,4 @@ spec:
           value: "root"
         - name: DB_PASS
           value: "root"
-      restartPolicy: Never
+      restartPolicy: OnFailure
