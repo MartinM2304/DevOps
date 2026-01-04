@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS indicators (
 CREATE TABLE IF NOT EXISTS diagrams (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     diagram_name VARCHAR(255) NOT NULL,
-    diagram_text TEXT NOT NULL,
+    `diagram_text` TEXT NOT NULL,
     project_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
