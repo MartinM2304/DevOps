@@ -51,12 +51,12 @@ jobs:
           tools: composer:v2
 
       - name: Install PHP Dependencies
-        run: composer install --prefer-dist --no-progress || echo "No composer.json found"
+        run: composer install --prefer-dist --no-progress
 
       - name: Run PHP Linting
         run: |
           if [ -f vendor/bin/phpcs ]; then
-            vendor/bin/phpcs --standard=PSR12 src/ || echo "Linting issues found"
+            vendor/bin/phpcs --standard=PSR12 src/
           else
             echo "PHPCS not installed, skipping lint"
           fi
