@@ -12,7 +12,7 @@ function getDbConnection() {
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
         ]);
         $pdo->exec("CREATE DATABASE IF NOT EXISTS `$db` CHARACTER SET utf8mb4");
-        $pdo->exec("USE `$db` text");
+        $pdo->exec("USE `$db`");
         
         $pdo->exec("CREATE TABLE IF NOT EXISTS schema_migrations (
             version VARCHAR(255) PRIMARY KEY,
