@@ -147,6 +147,13 @@ jobs:
             --port 8000:80@loadbalancer \
             --k3s-arg "--disable=traefik@server:*"
 
+      #todo - make these cached
+      - name: Build Docker Image
+        run: docker build -f docker/Dockerfile -t requirements-app:latest .
+
+      - name: Import Image into k3d
+        run: k3d image import requirements-app:latest -c my-cluster
+
       - name: Deploy to k3d
         run: |
           kubectl apply -f k8s/db-deployment.yaml
