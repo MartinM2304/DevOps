@@ -15,7 +15,7 @@ spec:
       initContainers:
       - name: wait-for-db
         image: busybox:1.35
-        imagePullPolicy: Never
+        imagePullPolicy: IfNotPresent
         command: ['sh', '-c', 'until nc -z db 3306; do echo "Waiting for DB..."; sleep 3; done']
 
       - name: run-migration
