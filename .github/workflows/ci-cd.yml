@@ -62,7 +62,7 @@ jobs:
           fi
 
   build-image:
-    needs: [php-lint, unit-tests]
+    needs: [php-code-quality, unit-tests]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     steps:
