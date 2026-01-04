@@ -15,7 +15,10 @@ services:
     volumes:
       - ./src:/var/www/html
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   db:
     image: mysql:8.0
@@ -26,5 +29,30 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./database/schema.sql:/docker-entrypoint-schemadb.d/schema.sql
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  #new service to migrate the db, wanted something similar like flyway in java
+  #that executes migration scripts
+  migrate:
+    build: .
+    command: php database/migrate.php
+    environment:
+      - DB_HOST=db
+      - DB_NAME=requirements_db
+      - DB_USER=root
+      - DB_PASS=root
+    volumes:
+      - ./database:/var/www/html/database
+      - ./src:/var/www/html/src
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:
 
