@@ -1,16 +1,6 @@
 # Requirements Management System
 
-A web-based system for tracking functional and non-functional project requirements. Built with PHP backend and vanilla JavaScript frontend, containerized with Docker and deployable to Kubernetes.
-
-## Features
-
-- **Project Management**: Create and manage multiple projects
-- **Requirements Tracking**: Track functional and non-functional requirements with priorities, complexity, and components
-- **User Management**: User registration, authentication, and project membership
-- **Diagrams**: Store and view PlantUML diagrams
-- **Indicators**: Define measurement indicators for non-functional requirements
-- **Import/Export**: Export projects to JSON and Markdown formats
-- **Filtering & Search**: Advanced filtering by type, priority, tags, and text search
+A web-based system University WEB project for tracking functional and non-functional project requirements. Built with PHP backend and vanilla JavaScript frontend, containerized with Docker and deployable to Kubernetes.
 
 ## Prerequisites
 
@@ -20,16 +10,9 @@ A web-based system for tracking functional and non-functional project requiremen
 - **MySQL 8.0+** (or use Docker)
 - **kubectl** and **k3d** (for Kubernetes deployment testing)
 
-## Quick Start with Docker (Recommended)
+## Local dev with Docker
 
-### 1. Clone the Repository
-
-```bash
-git clone <repository-url>
-cd DevOps
-```
-
-### 2. Start the Application
+### 1. Start the Application
 
 ```bash
 docker-compose up -d
@@ -41,76 +24,14 @@ This will:
 - Run database migrations automatically
 - Start the web server on port 8000
 
-### 3. Access the Application
+### 2. Access the Application
 
 Open your browser and navigate to:
 ```
-http://localhost:8000
+http://localhost:8000/frontend
 ```
 
-### 4. Check Container Status
-
-```bash
-docker-compose ps
-```
-
-### 5. View Logs
-
-```bash
-# All services
-docker-compose logs -f
-
-# Specific service
-docker-compose logs -f app
-docker-compose logs -f db
-docker-compose logs migrate
-```
-
-### 6. Stop the Application
-
-```bash
-docker-compose down
-```
-
-To also remove volumes (database data):
-```bash
-docker-compose down -v
-```
-
-## Local Development (Without Docker)
-
-### 1. Install Dependencies
-
-```bash
-composer install
-```
-
-### 2. Configure Database
-
-Create a MySQL database and update the connection settings in `src/backend/core/db.php` or use environment variables:
-
-```bash
-export DB_HOST=localhost
-export DB_NAME=requirements_db
-export DB_USER=root
-export DB_PASS=your_password
-```
-
-### 3. Run Migrations
-
-```bash
-php database/migrate.php
-```
-
-### 4. Start PHP Built-in Server
-
-```bash
-php -S localhost:8000 -t src
-```
-
-Access the application at `http://localhost:8000/frontend/index.html`
-
-## Testing
+## Tests
 
 ### Run All Tests
 
