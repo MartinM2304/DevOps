@@ -31,6 +31,13 @@ jobs:
       - name: Run Unit Tests
         run: php vendor/bin/phpunit --testsuite Unit
 
+      - name: sonarqube
+        uses: sonarsource/sonarqube-scan-action@v6
+        continue-on-error: true
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: "https://sonarcloud.io"
+
   build-push:
     needs: [quality-check]
     runs-on: ubuntu-latest
