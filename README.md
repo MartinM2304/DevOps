@@ -50,7 +50,6 @@ php vendor/bin/phpunit --testsuite Unit
 ### Run Integration Tests
 
 ```bash
-# Ensure MySQL is running and accessible
 export DB_HOST=127.0.0.1
 export DB_NAME=requirements_db
 export DB_USER=root
