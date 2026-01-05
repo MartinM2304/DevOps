@@ -40,7 +40,7 @@ jobs:
         with:
           args: >
             -Dsonar.organization=martinm2304
-            -Dsonar.projectKey=martinm2304_DevOps
+            -Dsonar.projectKey=MartinM2304_DevOps
 
   build-push:
     needs: [quality-check]
