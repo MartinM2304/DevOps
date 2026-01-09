@@ -1157,6 +1157,7 @@ window.onclick = function (event) {
     if (event.target === document.getElementById('login-modal')) closeLoginModal();
     if (event.target === document.getElementById('register-modal')) closeRegisterModal();
     if (event.target === document.getElementById('indicators-modal')) closeIndicatorsModal();
+    if (event.target === document.getElementById('translation-modal')) closeTranslationModal();
 };
 
 // Close modal function
@@ -1225,6 +1226,123 @@ async function showIndicatorsModal(requirementId) {
     }
 
     modal.style.display = 'block';
+}
+
+
+// translation methods
+let currentTranslationRequirementId = null;
+
+function translateRequirement(requirementId) {
+    currentTranslationRequirementId = requirementId;
+    document.getElementById('translation-modal').style.display = 'block';
+    document.getElementById('translation-result').style.display = 'none';
+    document.getElementById('translation-error').style.display = 'none';
+    document.getElementById('target-language').value = 'en';
+}
+
+function closeTranslationModal() {
+    document.getElementById('translation-modal').style.display = 'none';
+    currentTranslationRequirementId = null;
+    document.getElementById('translation-result').style.display = 'none';
+    document.getElementById('translation-error').style.display = 'none';
+}
+
+async function performTranslation() {
+    if (!currentTranslationRequirementId) {
+        showToast('Грешка: Няма избрано изискване', 'error');
+        return;
+    }
+    
+    const targetLang = document.getElementById('target-language').value;
+    const translateBtn = document.getElementById('translate-btn');
+    const loadingDiv = document.getElementById('translation-loading');
+    const resultDiv = document.getElementById('translation-result');
+    const errorDiv = document.getElementById('translation-error');
+    
+
+    translateBtn.disabled = true;
+    loadingDiv.style.display = 'block';
+    resultDiv.style.display = 'none';
+    errorDiv.style.display = 'none';
+    
+    try {
+        const result = await api.translateRequirement(currentTranslationRequirementId, targetLang);
+        
+        if (result.status === 'ok' && result.requirement) {
+
+            displayTranslatedRequirement(result.requirement);
+            loadingDiv.style.display = 'none';
+            resultDiv.style.display = 'block';
+        } else {
+            throw new Error(result.message || 'Грешка при превод');
+        }
+    } catch (error) {
+        console.error('Translation error:', error);
+        errorDiv.textContent = 'Грешка при превод: ' + error.message;
+        errorDiv.style.display = 'block';
+        loadingDiv.style.display = 'none';
+    } finally {
+        translateBtn.disabled = false;
+    }
+}
+
+function displayTranslatedRequirement(translatedReq) {
+    const container = document.getElementById('translated-content');
+    
+
+    let tags = translatedReq.tags || [];
+    if (!Array.isArray(tags) && typeof tags === 'string') {
+        try {
+            tags = JSON.parse(tags);
+        } catch {
+            tags = [];
+        }
+    }
+    
+    const tagsHtml = tags.length > 0 
+        ? tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')
+        : '';
+    
+    container.innerHTML = `
+        <div class="requirement-card" style="margin: 10px 0;">
+            <div class="requirement-header">
+                <h4>${escapeHtml(translatedReq.title || '')}</h4>
+                <div class="requirement-meta">
+                    <span class="priority">${getPriorityText(translatedReq.priority)}</span>
+                    <span class="type">${getTypeText(translatedReq.type)}</span>
+                </div>
+            </div>
+            
+            <div class="requirement-body">
+                <p>${escapeHtml(translatedReq.description || '')}</p>
+                
+                ${translatedReq.component ? 
+                    `<div class="component">Компонент: ${escapeHtml(translatedReq.component)}</div>` : ''}
+                
+                ${translatedReq.assignee ? 
+                    `<div class="assignee">Отговорен: ${escapeHtml(translatedReq.assignee)}</div>` : ''}
+                
+                ${tagsHtml ? `<div class="tags">${tagsHtml}</div>` : ''}
+                
+                ${translatedReq.complexity ? 
+                    `<div class="complexity">Сложност: ${getComplexityText(translatedReq.complexity)}</div>` : ''}
+            </div>
+            
+            ${translatedReq.indicators && translatedReq.indicators.length > 0 ? `
+                <div class="indicators-section" style="margin-top: 15px;">
+                    <h5>Индикатори:</h5>
+                    ${translatedReq.indicators.map(ind => `
+                        <div style="margin: 5px 0; padding: 8px; background: #f5f5f5; border-radius: 4px;">
+                            <strong>${escapeHtml(ind.name || '')}</strong>
+                            ${ind.value ? `: ${escapeHtml(ind.value)}` : ''}
+                            ${ind.unit ? ` ${escapeHtml(ind.unit)}` : ''}
+                            ${ind.description ? `<br><small>${escapeHtml(ind.description)}</small>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+        </div>
+    `;
 }
 
 window.onbeforeunload = function () {

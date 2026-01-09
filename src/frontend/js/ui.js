@@ -234,6 +234,7 @@ function createRequirementCard(requirement, isCompact = false) {
                 <div class="requirement-actions">
                     <button onclick="openEditModal('${requirement.id}')" class="btn btn-small">Редактирай</button>
                     <button onclick="deleteRequirement('${requirement.id}')" class="btn btn-small btn-danger">Изтрий</button>
+                    <button onclick="translateRequirement('${requirement.id}')" class="btn btn-small btn-secondary">Преведи</button>
                     ${requirement.type === 'non-functional' ? 
                         `<button onclick="showIndicatorsModal('${requirement.id}')" class="btn btn-small btn-secondary">Индикатори</button>` : ''}
                 </div>

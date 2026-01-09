@@ -4,7 +4,27 @@ class API {
         this.baseUrl = '../backend/api/';
     }
 
+    async translateRequirement(requirementId, targetLang = 'en') {
+    const response = await fetch(`${this.baseUrl}translate.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            requirement_id: requirementId,
+            target_lang: targetLang
+        })
+    });
+    
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Грешка при превод');
+    }
+    
+    return response.json();
+}
 
+async getSupportedLanguages() {
+    return this.get('translate.php?languages=1');
+}
 
     // GET заявка
     async get(endpoint) {

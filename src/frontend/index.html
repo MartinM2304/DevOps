@@ -415,6 +415,42 @@
     </div>
   </div>
 
+  <!-- Translation Modal -->
+  <div id="translation-modal" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width: 800px;">
+      <span class="close" onclick="closeTranslationModal()">&times;</span>
+      <h2>Превод на изискване</h2>
+      
+      <div class="form-group">
+        <label for="target-language">Целеви език:</label>
+        <select id="target-language">
+          <option value="en">English</option>
+          <option value="de">Deutsch</option>
+          <option value="fr">Français</option>
+          <option value="es">Español</option>
+          <option value="ru">Русский</option>
+          <option value="it">Italiano</option>
+          <option value="pt">Português</option>
+          <option value="bg" selected>Български</option>
+        </select>
+      </div>
+      
+      <button class="btn" onclick="performTranslation()" id="translate-btn">Преведи</button>
+      
+      <div id="translation-loading" style="display:none; margin: 20px 0;">
+        <p>Превеждане...</p>
+      </div>
+      
+      <div id="translation-result" style="display:none; margin-top: 20px;">
+        <h3>Преведено изискване:</h3>
+        <div id="translated-content" class="translated-requirement"></div>
+        <button class="btn btn-secondary" onclick="closeTranslationModal()" style="margin-top: 10px;">Затвори</button>
+      </div>
+      
+      <div id="translation-error" style="display:none; color: red; margin-top: 10px;"></div>
+    </div>
+  </div>
+
   <!-- Loading indicator -->
   <div id="loading" class="loading" style="display: none;">
     <div class="loading-spinner"></div>
